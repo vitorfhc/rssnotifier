@@ -16,7 +16,7 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "rssnotifier",
-	Short: "RSS Notifier is a tool to notify you when a new item is published in an RSS feed",
+	Short: "RSS Notifier polls RSS feeds and sends notifications if there are new items",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
