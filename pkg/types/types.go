@@ -1,7 +1,7 @@
 package types
 
 type Feed struct {
-	Name          string `json:"name"`
-	URL           string `json:"url"`
-	LastPublished string `json:"last_published"`
+	Name        string `json:"name"`
+	Link        string `json:"link"`
+	LastUpdated string `json:"lastUpdated"`
 }

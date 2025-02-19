@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vitorfhc/rssnotifier/pkg/db"
+	"github.com/vitorfhc/rssnotifier/pkg/notifier"
 	"github.com/vitorfhc/rssnotifier/pkg/types"
 )
 
@@ -63,7 +64,7 @@ func init() {
 
 			database.AddFeed(types.Feed{
 				Name: name,
-				URL:  url,
+				Link: url,
 			})
 
 			if err := database.Save(); err != nil {
@@ -81,4 +82,40 @@ func init() {
 	addCmd.MarkFlagRequired("name")
 
 	rootCmd.AddCommand(&addCmd)
+
+	pollCmd := cobra.Command{
+		Use:   "poll",
+		Short: "Poll the RSS feeds",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if dbpath == nil {
+				return fmt.Errorf("database path is required")
+			}
+
+			database, err := db.NewFromJSON(*dbpath)
+			if err != nil {
+				return fmt.Errorf("failed to read database: %w", err)
+			}
+
+			webhook, err := cmd.Flags().GetString("discord-webhook")
+			if err != nil {
+				return fmt.Errorf("failed to get Discord webhook: %w", err)
+			}
+
+			if webhook == "" {
+				return fmt.Errorf("webhook for Discord is required")
+			}
+
+			notfr := notifier.New(database, notifier.WithDiscordWebhookURL(webhook))
+			if err := notfr.Run(); err != nil {
+				return fmt.Errorf("failed to run notifier: %w", err)
+			}
+
+			return nil
+		},
+	}
+
+	pollCmd.Flags().StringP("discord-webhook", "w", "", "Discord webhook URL")
+	pollCmd.MarkFlagRequired("discord-webhook")
+
+	rootCmd.AddCommand(&pollCmd)
 }

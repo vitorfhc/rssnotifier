@@ -31,15 +31,25 @@ func NewFromJSON(filepath string) (*Database, error) {
 }
 
 func (d *Database) AddFeed(feed types.Feed) error {
-	url := feed.URL
 	for _, f := range d.data.Feeds {
-		if f.URL == url {
-			return fmt.Errorf("feed with URL %q already exists", url)
+		if f.Link == feed.Link {
+			return fmt.Errorf("feed with link %q already exists", feed.Link)
 		}
 	}
 
 	d.data.Feeds = append(d.data.Feeds, feed)
 	return nil
+}
+
+func (d *Database) UpdateFeed(feed types.Feed) error {
+	for i, f := range d.data.Feeds {
+		if f.Link == feed.Link {
+			d.data.Feeds[i] = feed
+			return nil
+		}
+	}
+
+	return fmt.Errorf("feed with link %q does not exist", feed.Link)
 }
 
 func (d *Database) GetFeeds() []types.Feed {
