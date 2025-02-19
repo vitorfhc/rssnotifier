@@ -3,7 +3,6 @@ module github.com/vitorfhc/rssnotifier
 go 1.23.0
 
 require (
-	github.com/joho/godotenv v1.5.1
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/spf13/cobra v1.9.1
 )
