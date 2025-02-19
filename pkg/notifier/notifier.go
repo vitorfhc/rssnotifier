@@ -63,7 +63,11 @@ func (n *Notifier) Run() error {
 
 		newItems := []gofeed.Item{}
 		for _, item := range parsedFeeds.Items {
-			if item.UpdatedParsed != nil && item.UpdatedParsed.After(feedLastUpdated) {
+			published := item.PublishedParsed
+			if published == nil {
+				published = item.UpdatedParsed
+			}
+			if published != nil && published.After(feedLastUpdated) {
 				newItems = append(newItems, *item)
 			}
 		}
@@ -86,7 +90,7 @@ func (n *Notifier) Run() error {
 }
 
 func (n *Notifier) SendDiscordNotification(feed types.Feed, items []gofeed.Item) error {
-	content := "New items in " + feed.Name + ":\n\n"
+	content := "# New items in " + feed.Name + ":\n\n"
 
 	for _, item := range items {
 		newContent := item.Title + "\n"
