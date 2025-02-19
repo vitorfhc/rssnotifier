@@ -1,10 +1,15 @@
 package notifier
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/mmcdole/gofeed"
 	"github.com/vitorfhc/rssnotifier/pkg/db"
+	"github.com/vitorfhc/rssnotifier/pkg/types"
 )
 
 type NotifierOpts struct {
@@ -70,8 +75,49 @@ func (n *Notifier) Run() error {
 			continue
 		}
 
-		// TODO: Send the new items to the Discord webhook
+		if n.opts.DiscordWebhookURL != "" {
+			if err := n.SendDiscordNotification(feed, newItems); err != nil {
+				return err
+			}
+		}
 	}
 
 	return n.database.Save()
+}
+
+func (n *Notifier) SendDiscordNotification(feed types.Feed, items []gofeed.Item) error {
+	content := "New items in " + feed.Name + ":\n\n"
+
+	for _, item := range items {
+		newContent := item.Title + "\n"
+		newContent += item.Link + "\n"
+		newContent += "\n"
+
+		if len(content)+len(newContent) > 2000 {
+			break
+		}
+
+		content += newContent
+	}
+
+	payload := map[string]string{
+		"content": content,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(n.opts.DiscordWebhookURL, "application/json", bytes.NewReader(payloadBytes))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return nil
 }
