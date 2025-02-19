@@ -63,7 +63,7 @@ func (n *Notifier) Run() error {
 
 		newItems := []gofeed.Item{}
 		for _, item := range parsedFeeds.Items {
-			if item.UpdatedParsed.After(feedLastUpdated) {
+			if item.UpdatedParsed != nil && item.UpdatedParsed.After(feedLastUpdated) {
 				newItems = append(newItems, *item)
 			}
 		}
